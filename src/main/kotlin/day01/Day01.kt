@@ -8,7 +8,25 @@ enum class Orientation {
     NORTH, EAST, SOUTH, WEST
 }
 
-data class Position(val location: Location, val orientation: Orientation)
+data class Path(val startLocation: Location,
+                val endLocation: Location,
+                val orientation: Orientation)
+
+fun Path.routeTaken(): List<Location> {
+    val route = mutableListOf<Location>()
+
+    var nextLocation = startLocation
+    while (nextLocation != endLocation) {
+        when (orientation) {
+            Orientation.NORTH -> nextLocation = Location(nextLocation.x, nextLocation.y + 1)
+            Orientation.EAST -> nextLocation = Location(nextLocation.x + 1, nextLocation.y)
+            Orientation.SOUTH -> nextLocation = Location(nextLocation.x, nextLocation.y - 1)
+            Orientation.WEST -> nextLocation = Location(nextLocation.x - 1, nextLocation.y)
+        }
+        route.add(nextLocation)
+    }
+    return route
+}
 
 fun Orientation.turn(turn: Turn): Orientation {
     val orientationSize = Orientation.values().size
@@ -18,29 +36,28 @@ fun Orientation.turn(turn: Turn): Orientation {
     }
 }
 
-fun Position.move(turn: Turn, moves: Int): Position {
+fun Path.newMove(turn: Turn, moves: Int): Path {
     val newOrientation = orientation.turn(turn)
     val newLocation: Location
     when (newOrientation) {
-        Orientation.NORTH -> newLocation = Location(location.x, location.y + moves)
-        Orientation.EAST -> newLocation = Location(location.x + moves, location.y)
-        Orientation.SOUTH -> newLocation = Location(location.x, location.y - moves)
-        Orientation.WEST -> newLocation = Location(location.x - moves, location.y)
+        Orientation.NORTH -> newLocation = Location(endLocation.x, endLocation.y + moves)
+        Orientation.EAST -> newLocation = Location(endLocation.x + moves, endLocation.y)
+        Orientation.SOUTH -> newLocation = Location(endLocation.x, endLocation.y - moves)
+        Orientation.WEST -> newLocation = Location(endLocation.x - moves, endLocation.y)
     }
-    return Position(newLocation, newOrientation)
+    return Path(endLocation, newLocation, newOrientation)
 }
 
 enum class Turn {
     LEFT, RIGHT
 }
 
-fun steps(commands: List<Pair<Turn, Int>>): List<Position> {
-    val steps = mutableListOf<Position>()
+fun steps(commands: List<Pair<Turn, Int>>): List<Path> {
+    val steps = mutableListOf<Path>()
 
-    var currentPosition = Position(Location(0, 0), Orientation.NORTH)
-    steps.add(currentPosition)
+    var currentPosition = Path(Location(0, 0), Location(0, 0), Orientation.NORTH)
     for (command in commands) {
-        currentPosition = currentPosition.move(command.first, command.second)
+        currentPosition = currentPosition.newMove(command.first, command.second)
         steps.add(currentPosition)
     }
 
@@ -56,17 +73,17 @@ fun parse(text: String): List<Pair<Turn, Int>> =
                     Pair(if (turn == "L") Turn.LEFT else Turn.RIGHT, moves.toInt())
                 }
 
-fun Position.distanceFrom(other: Position) =
-        Math.abs(location.x + other.location.x) + Math.abs(location.y + other.location.y)
+fun Location.distanceFrom(other: Location) =
+        Math.abs(x + other.x) + Math.abs(y + other.y)
 
-fun findRepeatedPosition(steps: List<Position>): Position? {
-    val foundLocations = mutableSetOf<Location>()
+fun findRepeatedLocation(steps: List<Path>): Location? {
+    val visitedLocations = mutableSetOf<Location>(Location(0, 0))
     for (step in steps) {
-        val location = step.location
-        if (foundLocations.contains(location)) {
-            return step
-        } else {
-            foundLocations.add(location)
+        for (location in step.routeTaken()) {
+            if (visitedLocations.contains(location)) {
+                return location
+            }
+            visitedLocations.add(location)
         }
     }
     return null
@@ -76,6 +93,6 @@ fun main(args: Array<String>) {
     val steps = steps(parse(File("data/day01/input.txt").readText()))
     println(steps)
 
-    println("Distance origin - end: ${steps[0].distanceFrom(steps[steps.size - 1])}")
-    println("Distance origin - repeated path: ${steps[0].distanceFrom(findRepeatedPosition(steps)!!)}")
+    println("Distance origin - end: ${steps[0].startLocation.distanceFrom(steps[steps.size - 1].endLocation)}")
+    println("Distance origin - repeated path: ${steps[0].startLocation.distanceFrom(findRepeatedLocation(steps)!!)}")
 }
