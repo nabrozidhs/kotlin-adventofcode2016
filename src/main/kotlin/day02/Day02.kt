@@ -4,7 +4,7 @@ import java.io.File
 import java.lang.Integer.max
 import java.lang.Integer.min
 
-enum class Direction {UP, RIGHT, DOWN, LEFT }
+enum class Direction { UP, RIGHT, DOWN, LEFT }
 data class Position(val x: Int, val y: Int)
 
 val keypad1 = listOf(
@@ -23,32 +23,27 @@ val keypad2 = listOf(
 fun trackAllDirections(directions: List<List<Direction>>, keypad: List<List<Char>>): List<Position> {
     val positions = mutableListOf<Position>()
     for (direction in directions) {
-        val linePosition: Position
-        if (positions.size == 0) {
-            linePosition = trackDirection(direction, Position(1, 1), keypad)
-        } else {
-            linePosition = trackDirection(direction, positions.last(), keypad)
-        }
-        positions.add(linePosition)
+        positions.add(
+                if (positions.size == 0) trackDirection(direction, Position(1, 1), keypad)
+                else trackDirection(direction, positions.last(), keypad))
     }
     return positions
 }
 
 fun trackDirection(directions: List<Direction>, startingPosition: Position, keypad: List<List<Char>>): Position {
     var position = startingPosition
-    for (direction in directions) {
-        val newPosition: Position
-        when (direction) {
-            Direction.UP -> newPosition = Position(position.x, max(position.y - 1, 0))
-            Direction.DOWN -> newPosition = Position(position.x, min(position.y + 1, keypad.size - 1))
-            Direction.LEFT -> newPosition = Position(max(position.x - 1, 0), position.y)
-            Direction.RIGHT -> newPosition = Position(min(position.x + 1, keypad[0].size - 1), position.y)
-        }
-
-        if (keypad[newPosition.y][newPosition.x] != ' ') {
-            position = newPosition
-        }
-    }
+    directions
+            .asSequence()
+            .map {
+                when (it) {
+                    Direction.UP -> Position(position.x, max(position.y - 1, 0))
+                    Direction.DOWN -> Position(position.x, min(position.y + 1, keypad.size - 1))
+                    Direction.LEFT -> Position(max(position.x - 1, 0), position.y)
+                    Direction.RIGHT -> Position(min(position.x + 1, keypad[0].size - 1), position.y)
+                }
+            }
+            .filter { keypad[it.y][it.x] != ' ' }
+            .forEach { position = it }
     return position
 }
 

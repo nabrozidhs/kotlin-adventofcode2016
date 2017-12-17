@@ -3,7 +3,7 @@ package day05
 import java.security.MessageDigest
 import javax.xml.bind.DatatypeConverter
 
-val md5Digest = MessageDigest.getInstance("MD5")
+val md5Digest: MessageDigest = MessageDigest.getInstance("MD5")
 fun md5(data: String): String =
         DatatypeConverter.printHexBinary(md5Digest.digest(data.toByteArray()))
 

@@ -11,19 +11,19 @@ val parseRegex = Regex("(\\d+) +(\\d+) +(\\d+)")
 fun parse(input: String): List<Triple<Int, Int, Int>> =
         input.split("\n")
                 .map {
-                    val (unused, a, b, c) = parseRegex.find(it)!!.groupValues
+                    val (_, a, b, c) = parseRegex.find(it)!!.groupValues
                     Triple(a.toInt(), b.toInt(), c.toInt())
                 }
 
 fun parse2(input: String): List<Triple<Int, Int, Int>> {
     val lines = input.split("\n")
             .map {
-                val (unused, a, b, c) = parseRegex.find(it)!!.groupValues
+                val (_, a, b, c) = parseRegex.find(it)!!.groupValues
                 listOf(a.toInt(), b.toInt(), c.toInt())
             }
     val triples = mutableListOf<Triple<Int, Int, Int>>()
-    for (i in 0..lines.size-1 step 3) {
-        (0..2).mapTo(triples) { Triple(lines[i][it], lines[i+1][it], lines[i+2][it]) }
+    for (i in 0 until lines.size step 3) {
+        (0..2).mapTo(triples) { Triple(lines[i][it], lines[i + 1][it], lines[i + 2][it]) }
     }
     return triples
 }

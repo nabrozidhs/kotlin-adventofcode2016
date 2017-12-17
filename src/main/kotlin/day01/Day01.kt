@@ -17,11 +17,11 @@ fun Path.routeTaken(): List<Location> {
 
     var nextLocation = startLocation
     while (nextLocation != endLocation) {
-        when (orientation) {
-            Orientation.NORTH -> nextLocation = Location(nextLocation.x, nextLocation.y + 1)
-            Orientation.EAST -> nextLocation = Location(nextLocation.x + 1, nextLocation.y)
-            Orientation.SOUTH -> nextLocation = Location(nextLocation.x, nextLocation.y - 1)
-            Orientation.WEST -> nextLocation = Location(nextLocation.x - 1, nextLocation.y)
+        nextLocation = when (orientation) {
+            Orientation.NORTH -> Location(nextLocation.x, nextLocation.y + 1)
+            Orientation.EAST -> Location(nextLocation.x + 1, nextLocation.y)
+            Orientation.SOUTH -> Location(nextLocation.x, nextLocation.y - 1)
+            Orientation.WEST -> Location(nextLocation.x - 1, nextLocation.y)
         }
         route.add(nextLocation)
     }
@@ -39,11 +39,11 @@ fun Orientation.turn(turn: Turn): Orientation {
 fun Path.newMove(turn: Turn, moves: Int): Path {
     val newOrientation = orientation.turn(turn)
     val newLocation: Location
-    when (newOrientation) {
-        Orientation.NORTH -> newLocation = Location(endLocation.x, endLocation.y + moves)
-        Orientation.EAST -> newLocation = Location(endLocation.x + moves, endLocation.y)
-        Orientation.SOUTH -> newLocation = Location(endLocation.x, endLocation.y - moves)
-        Orientation.WEST -> newLocation = Location(endLocation.x - moves, endLocation.y)
+    newLocation = when (newOrientation) {
+        Orientation.NORTH -> Location(endLocation.x, endLocation.y + moves)
+        Orientation.EAST -> Location(endLocation.x + moves, endLocation.y)
+        Orientation.SOUTH -> Location(endLocation.x, endLocation.y - moves)
+        Orientation.WEST -> Location(endLocation.x - moves, endLocation.y)
     }
     return Path(endLocation, newLocation, newOrientation)
 }
@@ -64,12 +64,12 @@ fun steps(commands: List<Pair<Turn, Int>>): List<Path> {
     return steps
 }
 
-val parseRegex = Regex("(L|R)(\\d+)")
+val parseRegex = Regex("([LR])(\\d+)")
 fun parse(text: String): List<Pair<Turn, Int>> =
         text
                 .split(",")
                 .map { it ->
-                    val (unused, turn, moves) = parseRegex.find(it)!!.groupValues
+                    val (_, turn, moves) = parseRegex.find(it)!!.groupValues
                     Pair(if (turn == "L") Turn.LEFT else Turn.RIGHT, moves.toInt())
                 }
 
@@ -77,7 +77,7 @@ fun Location.distanceFrom(other: Location) =
         Math.abs(x + other.x) + Math.abs(y + other.y)
 
 fun findRepeatedLocation(steps: List<Path>): Location? {
-    val visitedLocations = mutableSetOf<Location>(Location(0, 0))
+    val visitedLocations = mutableSetOf(Location(0, 0))
     for (step in steps) {
         for (location in step.routeTaken()) {
             if (visitedLocations.contains(location)) {
